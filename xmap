@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+import argparse
+from core.core import handle_scan  
+import signal, sys
+from threading import Event
+from termcolor import colored
+stop_event = Event()
+
+def def_handler(sig, frame):
+    stop_event.set()  # Activar el evento para detener los hilos
+    print(colored(f"\n\n[!] Saliendo del programa...\n", "red"))
+    sys.exit(1)
+
+signal.signal(signal.SIGINT, def_handler)
+
+def main():
+    args = get_arguments()  # Obtener los argumentos
+    handle_scan(scan_type=args.scan_type, target=args.target, stop_event=stop_event, ports=args.ports)
+
+def get_arguments():
+    """Función para recoger los argumentos de la línea de comandos."""
+    parser = argparse.ArgumentParser(description="Escáner de red tipo xmap")
+    parser.add_argument("-t", "--target", required=True, help="Host o Rango IP (ej: 192.168.1.1 o 192.168.1.0/24)")
+    parser.add_argument("-s", "--scan-type", required=True, choices=["arp", "icmp", "tcp"], help="Tipo de escaneo")
+    parser.add_argument("-p", "--ports", help="Puertos a escanear (ej: 80, 20-100, 22,80,443). Por defecto, los 100 puertos más comunes.")
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    main()
+
